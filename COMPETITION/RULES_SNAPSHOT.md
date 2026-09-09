@@ -1,0 +1,2 @@
+# Nebius × NVIDIA Global AI Hackathon snapshot
+Target deadline: October 30, 2026 at 10:00 AM PDT. The event is open to eligible adults/teams/organizations and includes Coding and Agentic Engineering and Best Apps and Agents lanes. VULCAN targets agentic engineering. Revalidate current rules, required Nebius/NVIDIA technology, repository/video requirements and prize terms immediately before submission.

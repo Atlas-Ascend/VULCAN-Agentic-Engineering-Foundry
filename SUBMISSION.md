@@ -1,0 +1,2 @@
+# Submission Draft
+VULCAN is an agentic engineering foundry that refuses to equate generation with engineering. Multiple candidate implementations compete against the same executable tests. Failures enter bounded repair loops. A promotion governor excludes unverified code and seals the winning lineage into a proof receipt. In competition mode, Nebius/NVIDIA models generate candidate implementations while VULCAN remains the independent evaluation and governance layer.

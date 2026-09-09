@@ -1,0 +1,2 @@
+# Architecture
+Engineering Objective → Candidate Generator(s) → Candidate Lineages → Executable Evaluation Harness → Failure Classifier → Repair Loop → Risk/Score Ranker → Independent Verification → Promotion Gate → Proof Receipt. Sponsor model generation is an adapter; evaluation, repair policy, promotion and proof are model-independent.

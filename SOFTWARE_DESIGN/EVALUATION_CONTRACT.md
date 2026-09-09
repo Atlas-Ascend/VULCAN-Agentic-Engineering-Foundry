@@ -1,0 +1,2 @@
+# Evaluation Contract
+Every candidate is evaluated against the same immutable test set. Scores combine functional test coverage with explicit risk/revision penalties. A candidate cannot be promoted solely because a model prefers it. Mandatory tests must all pass. Failing candidates may enter a bounded repair loop and receive a new lineage revision.

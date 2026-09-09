@@ -1,0 +1,2 @@
+# Promotion Gate
+Eligibility requires `verified=true`. Ranking occurs only inside the verified set. Promotion creates an event and the receipt asserts `unverified_promotions=0`. Production deployment, secrets changes, arbitrary shell execution and destructive repository actions are outside the hosted demo authority envelope.

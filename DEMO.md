@@ -1,0 +1,2 @@
+# Demo
+Press **Run Engineering Tournament**. Candidate A initially fails `zero-count`; VULCAN records the failure and applies a bounded repair. All candidates are re-scored. Only verified candidates enter selection. The winner is promoted and the receipt must show `winner_verified=true`, `unverified_promotions=0`, at least one repair revision and `verification=PASS`.

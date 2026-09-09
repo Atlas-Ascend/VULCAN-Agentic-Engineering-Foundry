@@ -1,0 +1,2 @@
+# Nebius Adapter
+The optional adapter uses an OpenAI-compatible chat-completions boundary configured by `NEBIUS_BASE_URL`, `NEBIUS_API_KEY`, and `NEBIUS_MODEL`. The deterministic demo does not invoke it. Competition proof must include real sponsor inference identifiers and show that sponsor-generated candidates pass through the same evaluator rather than being trusted directly.

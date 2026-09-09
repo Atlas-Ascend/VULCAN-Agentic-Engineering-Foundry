@@ -1,0 +1,2 @@
+# IP and Provenance
+VULCAN is a standalone JANUS-10 competition implementation. The deterministic engineering tournament and its source are new work in this repo. Ghost Atlas concepts such as governed authority, independent verification and proof receipts inform the architecture but no undisclosed proprietary estate source is imported. Sponsor-generated candidate code must be tracked with provider/model/run metadata when live mode is enabled.

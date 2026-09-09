@@ -1,0 +1,2 @@
+# Definition of Done
+Product PASS: objective → multiple candidates → executable tests → visible failure → repair → re-evaluation → verified-only ranking → winner promotion → receipt. Competition COMPLETE additionally requires real Nebius/NVIDIA candidate generation and final submission evidence.

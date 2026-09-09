@@ -1,0 +1,2 @@
+# Runtime Status
+Implemented: candidate tournament model, executable deterministic evaluation, visible zero-count failure, bounded repair lineage, risk-aware scoring, verified-only promotion, proof receipt, sponsor adapter, browser UI, tests, CI and Render manifest. External competition proof open: real Nebius/NVIDIA generation run, provider/model metadata, public demo video and final submission.
