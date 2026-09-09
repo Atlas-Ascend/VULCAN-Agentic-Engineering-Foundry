@@ -1,0 +1,7 @@
+schema: ghost-atlas.hypernet.node/v1
+repository: Atlas-Ascend/VULCAN-Agentic-Engineering-Foundry
+lifecycle: active
+plane: factory
+role: agentic-engineering-foundry-and-metaforge-family-provider
+hypernets: [github, render, software, cloud]
+routing: {authorization: Janus-Prime, io: Crowngrid, discovery: Estate-Service-Catalog-Capability-Registry, transport: Ghost-Atlas-Estate-Service-Mesh-Runtime-Connectivity-Fabric, events: Ghost-Atlas-Estate-Event-Gateway, observability: Ghost-Atlas-Runtime-Observatory, quality: SECA, development_repair: DEVOS}
