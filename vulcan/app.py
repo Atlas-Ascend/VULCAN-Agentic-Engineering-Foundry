@@ -8,6 +8,8 @@ from .prompt_os_adapter import compile_prompt, status as prompt_os_status
 app=FastAPI(title="VULCAN Agentic Engineering Foundry",version="0.2.0")
 engine=VulcanEngine()
 nebius=NebiusAdapter()
+_self_test_packet=compile_prompt({"objective":"runtime-startup-self-check","prompt_id":"software.self-build","proof_class":"P8"})
+print(f"PROMPT_OS_RUNTIME_SELF_CHECK=PASS packet_hash={_self_test_packet['packet_hash']} version={_self_test_packet['version']}")
 
 @app.get("/",response_class=HTMLResponse)
 def home():
