@@ -1,0 +1,12 @@
+schema: ghost-atlas.hypernet.node-registration/v1
+event_id: HYPERNET-SOFTWARE-FABRIC-GLOBAL-RESOLUTION-20260909T185600-0700
+repository: Atlas-Ascend/VULCAN-Agentic-Engineering-Foundry
+lifecycle: active
+plane: packet_workforce_execution
+connection_state: fabric_registered
+canonical_matrix: Atlas-Ascend/Ghost-Atlas-Distributed-Agentic-Organism/06-TOPOLOGY/HYPERNET_SOFTWARE_CAPABILITY_MATRIX_2026-09-09.yaml
+routing_profile: estate-default-v1
+bindings: {github: verified, render: verified, vercel: declared_eligible, neon: discovered_unbound_shared_data_plane, eden: declared_eligible}
+feedback_profile: closed-loop-v1
+promotion_gate: [DEVOS, SECA, Medusa-Sovereign-Security, proof_receipt]
+truth: registration_and_render_binding_verified; other_provider_states_not_runtime_claims
