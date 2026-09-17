@@ -81,3 +81,9 @@ async def autobuilder_repository_patch(
         raise HTTPException(status_code=403, detail=str(exc)) from exc
     except (GitHubExecutionError, ValueError) as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+# Register named-agent routes on the same FastAPI application used by the canonical
+# Render start command (uvicorn vulcan.app:app). The import is intentionally last:
+# agent_app consumes the already-created app/executor/model instances and only adds
+# routes; it does not create a second runtime or authority path.
+from . import agent_app as _agent_app  # noqa: E402,F401
