@@ -2,12 +2,13 @@ from __future__ import annotations
 
 from fastapi import Header, HTTPException
 
-from .agent_runner import AgentPlanError, AgentRunRequest, AgentRunner, AgentRunnerConfigError
+from .agent_runner import AgentPlanError, AgentRunRequest, AgentRunnerConfigError
 from .app import app, github_executor, nebius
 from .github_executor import ExecutorAuthorizationError, ExecutorConfigError, GitHubExecutionError
+from .job_bound_agent_runner import JobBoundAgentRunner
 from .named_agent_model import NamedAgentNebiusAdapter
 
-named_agent_runner = AgentRunner(github_executor, NamedAgentNebiusAdapter(nebius))
+named_agent_runner = JobBoundAgentRunner(github_executor, NamedAgentNebiusAdapter(nebius))
 
 
 @app.get("/autobuilder/agent-health")
