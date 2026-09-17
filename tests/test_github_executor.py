@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 
 import httpx
@@ -10,8 +11,27 @@ from vulcan.github_executor import (
     ExecutorConfigError,
     GitHubExecutor,
     RepositoryPatchRequest,
+    validate_janus_receipt,
     validate_write_path,
 )
+
+
+def janus_receipt(run_id="ROLE-060-canary", requested_by="REPO-AGENT-VULCAN-Agentic-Engineering-Foundry"):
+    body = {
+        "decision_id": "decision-test-001",
+        "decision": "ALLOW",
+        "authority": "janus-prime",
+        "policy_id": "janus-runtime-gate-v1",
+        "run_id": run_id,
+        "correlation_id": "ga-farc-test-correlation",
+        "capability": "autobuilder.repository.patch",
+        "requested_by": requested_by,
+        "reasons": ["AUTHENTICATED_ARCHITECT_INGRESS", "CAPABILITY_ALLOWED"],
+        "decided_at": "2026-09-17T05:20:00+00:00",
+    }
+    canonical = json.dumps(body, sort_keys=True, separators=(",", ":")).encode()
+    body["receipt_digest"] = hashlib.sha256(canonical).hexdigest()
+    return json.dumps(body, sort_keys=True)
 
 
 def request_payload(**overrides):
@@ -21,7 +41,7 @@ def request_payload(**overrides):
         "agent_worker_id": "REPO-AGENT-VULCAN-Agentic-Engineering-Foundry",
         "repository": "Atlas-Ascend/VULCAN-Agentic-Engineering-Foundry",
         "objective": "Create an execution receipt for a bounded canary.",
-        "janus_receipt": "janus-receipt-canary",
+        "janus_receipt": janus_receipt(),
         "commit_message": "canary: add execution receipt",
         "pr_title": "[GA-FARC] VULCAN executor canary",
         "pr_body": "Deterministic executor canary.",
@@ -62,6 +82,39 @@ def test_sensitive_and_authority_paths_are_blocked():
 def test_request_is_bounded_to_atlas_ascend():
     with pytest.raises(ValidationError):
         RepositoryPatchRequest.model_validate(request_payload(repository="someone-else/repo"))
+
+
+def test_placeholder_janus_receipt_is_rejected():
+    with pytest.raises(ValidationError):
+        RepositoryPatchRequest.model_validate(request_payload(janus_receipt="janus-ok"))
+
+
+def test_janus_receipt_is_bound_to_run_and_worker():
+    with pytest.raises(ValidationError):
+        RepositoryPatchRequest.model_validate(
+            request_payload(janus_receipt=janus_receipt(run_id="different-run"))
+        )
+    with pytest.raises(ValidationError):
+        RepositoryPatchRequest.model_validate(
+            request_payload(janus_receipt=janus_receipt(requested_by="REPO-AGENT-Other"))
+        )
+
+
+def test_tampered_janus_receipt_is_rejected():
+    payload = json.loads(janus_receipt())
+    payload["capability"] = "tampered.capability"
+    with pytest.raises(ValidationError):
+        RepositoryPatchRequest.model_validate(request_payload(janus_receipt=json.dumps(payload)))
+
+
+def test_valid_janus_receipt_integrity_passes():
+    receipt = janus_receipt()
+    parsed = validate_janus_receipt(
+        receipt,
+        run_id="ROLE-060-canary",
+        agent_worker_id="REPO-AGENT-VULCAN-Agentic-Engineering-Foundry",
+    )
+    assert parsed["decision"] == "ALLOW"
 
 
 def test_full_pr_only_flow_with_mock_github():
@@ -105,6 +158,7 @@ def test_full_pr_only_flow_with_mock_github():
 
     assert result["status"] == "EXECUTED_NOT_VERIFIED"
     assert result["merge_performed"] is False
+    assert result["janus_receipt_gate"] == "PASS_INTEGRITY_AND_CORRELATION"
     assert result["pull_request_number"] == 77
     assert result["writes"] == [{"path": "receipts/ga-farc/canary.json", "commit_sha": "commit456"}]
     assert all(auth == "Bearer test-token" for _, _, auth in seen)
