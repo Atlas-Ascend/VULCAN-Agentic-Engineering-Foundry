@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import base64
+import hashlib
 import hmac
+import json
 import os
 import re
 from typing import Literal
 from urllib.parse import quote
 
 import httpx
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 CAMPAIGN = "GA-FARC-ESTATE-AGENTIC-BUILD-002"
 _ALLOWED_REPOSITORY = re.compile(r"^Atlas-Ascend/[A-Za-z0-9_.-]+$")
@@ -18,6 +20,9 @@ _BLOCKED_FILENAMES = {".env", "id_rsa", "id_ed25519"}
 _BLOCKED_SUFFIXES = (".pem", ".key", ".p12", ".pfx")
 _MAX_FILES = 20
 _MAX_FILE_CHARS = 200_000
+_JANUS_AUTHORITY = "janus-prime"
+_JANUS_POLICY = "janus-runtime-gate-v1"
+_JANUS_REQUIRED_REASONS = {"AUTHENTICATED_ARCHITECT_INGRESS", "CAPABILITY_ALLOWED"}
 
 
 class ExecutorConfigError(RuntimeError):
@@ -52,6 +57,66 @@ def validate_write_path(path: str) -> str:
     if any(part.lower() in {"secrets", ".secrets"} for part in parts):
         raise ValueError("autonomous executor cannot write secret directories")
     return normalized
+
+
+def validate_janus_receipt(receipt: str, *, run_id: str, agent_worker_id: str) -> dict:
+    """Validate JANUS receipt integrity and binding before any mutation.
+
+    JANUS v1 receipts carry a canonical SHA-256 digest rather than a portable
+    cryptographic signature. This gate therefore proves structural integrity,
+    ALLOW semantics, and request correlation; it does not pretend the digest is
+    an HMAC signature. Authentication remains provided by the separate JANUS
+    ingress secret and VULCAN execution-key boundary.
+    """
+    try:
+        payload = json.loads(receipt)
+    except (TypeError, json.JSONDecodeError) as exc:
+        raise ValueError("janus_receipt must be canonical JANUS decision JSON") from exc
+    if not isinstance(payload, dict):
+        raise ValueError("janus_receipt must decode to an object")
+
+    required = {
+        "decision_id",
+        "decision",
+        "authority",
+        "policy_id",
+        "run_id",
+        "correlation_id",
+        "capability",
+        "requested_by",
+        "reasons",
+        "decided_at",
+        "receipt_digest",
+    }
+    missing = sorted(key for key in required if key not in payload)
+    if missing:
+        raise ValueError(f"janus_receipt missing fields: {','.join(missing)}")
+    if payload.get("decision") != "ALLOW":
+        raise ValueError("janus_receipt decision must be ALLOW")
+    if payload.get("authority") != _JANUS_AUTHORITY:
+        raise ValueError("janus_receipt authority mismatch")
+    if payload.get("policy_id") != _JANUS_POLICY:
+        raise ValueError("janus_receipt policy mismatch")
+    if payload.get("run_id") != run_id:
+        raise ValueError("janus_receipt run_id mismatch")
+    if payload.get("requested_by") != agent_worker_id:
+        raise ValueError("janus_receipt requested_by mismatch")
+    if not payload.get("decision_id") or not payload.get("correlation_id") or not payload.get("capability"):
+        raise ValueError("janus_receipt decision_id/correlation_id/capability required")
+
+    reasons = payload.get("reasons")
+    if not isinstance(reasons, list) or not _JANUS_REQUIRED_REASONS.issubset({str(item) for item in reasons}):
+        raise ValueError("janus_receipt missing authenticated allow reasons")
+
+    digest = payload.get("receipt_digest")
+    if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+        raise ValueError("janus_receipt digest invalid")
+    unsigned = {key: value for key, value in payload.items() if key != "receipt_digest"}
+    canonical = json.dumps(unsigned, sort_keys=True, separators=(",", ":")).encode()
+    expected = hashlib.sha256(canonical).hexdigest()
+    if not hmac.compare_digest(digest, expected):
+        raise ValueError("janus_receipt digest mismatch")
+    return payload
 
 
 class PatchFile(BaseModel):
@@ -98,6 +163,15 @@ class RepositoryPatchRequest(BaseModel):
             raise ValueError("unsafe base branch")
         return value
 
+    @model_validator(mode="after")
+    def _janus_receipt_is_bound(self):
+        validate_janus_receipt(
+            self.janus_receipt,
+            run_id=self.run_id,
+            agent_worker_id=self.agent_worker_id,
+        )
+        return self
+
 
 class GitHubExecutor:
     """Bounded repository mutation adapter.
@@ -130,6 +204,7 @@ class GitHubExecutor:
             "execution_key_configured": key_ready,
             "configured": token_ready and key_ready,
             "blocked_paths": list(_BLOCKED_PREFIXES),
+            "janus_receipt_gate": "ALLOW_INTEGRITY_AND_CORRELATION_REQUIRED",
             "proof_state_on_success": "EXECUTED_NOT_VERIFIED",
         }
 
@@ -251,6 +326,7 @@ class GitHubExecutor:
             "pull_request_number": pr.get("number"),
             "pull_request_url": pr.get("html_url"),
             "merge_performed": False,
+            "janus_receipt_gate": "PASS_INTEGRITY_AND_CORRELATION",
             "verification_required": ["SECA", "DevOS", "HQ-25"],
             "proof_required": "ProofGrid -> Thoth",
         }

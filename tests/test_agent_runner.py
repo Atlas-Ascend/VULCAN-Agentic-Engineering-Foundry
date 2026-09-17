@@ -1,4 +1,5 @@
 import base64
+import hashlib
 import json
 
 import httpx
@@ -47,8 +48,15 @@ class FakeModel:
         return json.dumps({"lifecycle":"ACTIVE","repository_role":"Canonical test repository for named-agent execution proof.","diagnosis":"Role resolution requires an evidence receipt without replacement architecture.","mutation_boundary":"Write only a campaign receipt; do not alter authority or workflow files.","target_repository":"Atlas-Ascend/Test-Repo","files":[{"path":"receipts/ga-farc/ROLE-999.json","content":"{\"lifecycle\":\"ACTIVE\"}\n"}],"commit_message":"ga-farc: record repository role receipt","pr_title":"[GA-FARC] Resolve Test-Repo role","pr_body":"Bounded role-resolution evidence.","tests_to_run":["pytest -q"],"acceptance_evidence":["role receipt exists","repository tests pass"],"handoffs":["HQ-25 independent verification"]})
 
 
+def janus_receipt(run_id="ROLE-999-canary", requested_by="REPO-AGENT-Test-Repo"):
+    body={"decision_id":"decision-test-999","decision":"ALLOW","authority":"janus-prime","policy_id":"janus-runtime-gate-v1","run_id":run_id,"correlation_id":"ga-farc-role-999","capability":"autobuilder.repository.patch","requested_by":requested_by,"reasons":["AUTHENTICATED_ARCHITECT_INGRESS","CAPABILITY_ALLOWED"],"decided_at":"2026-09-17T05:20:00+00:00"}
+    canonical=json.dumps(body,sort_keys=True,separators=(",",":")).encode()
+    body["receipt_digest"]=hashlib.sha256(canonical).hexdigest()
+    return json.dumps(body,sort_keys=True)
+
+
 def payload(**updates):
-    base={"campaign":"GA-FARC-ESTATE-AGENTIC-BUILD-002","run_id":"ROLE-999-canary","agent_class":"REPOSITORY_AGENT","agent_worker_id":"REPO-AGENT-Test-Repo","agent_profile_repository":"Atlas-Ascend/Test-Repo","agent_profile_path":".github/agents/repo-custodian.agent.md","source_issue_repository":"Atlas-Ascend/Test-Repo","source_issue_number":7,"target_repository":"Atlas-Ascend/Test-Repo","janus_receipt":"JANUS-CANARY-001","handoff_refs":["ga-farc-eab002-role-999"]}
+    base={"campaign":"GA-FARC-ESTATE-AGENTIC-BUILD-002","run_id":"ROLE-999-canary","agent_class":"REPOSITORY_AGENT","agent_worker_id":"REPO-AGENT-Test-Repo","agent_profile_repository":"Atlas-Ascend/Test-Repo","agent_profile_path":".github/agents/repo-custodian.agent.md","source_issue_repository":"Atlas-Ascend/Test-Repo","source_issue_number":7,"target_repository":"Atlas-Ascend/Test-Repo","janus_receipt":janus_receipt(),"handoff_refs":["ga-farc-eab002-role-999"]}
     base.update(updates); return base
 
 
