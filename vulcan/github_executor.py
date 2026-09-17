@@ -22,6 +22,7 @@ _MAX_FILES = 20
 _MAX_FILE_CHARS = 200_000
 _JANUS_AUTHORITY = "janus-prime"
 _JANUS_POLICY = "janus-runtime-gate-v1"
+_JANUS_CAPABILITY = "autobuilder.repository.patch"
 _JANUS_REQUIRED_REASONS = {"AUTHENTICATED_ARCHITECT_INGRESS", "CAPABILITY_ALLOWED"}
 
 
@@ -64,9 +65,9 @@ def validate_janus_receipt(receipt: str, *, run_id: str, agent_worker_id: str) -
 
     JANUS v1 receipts carry a canonical SHA-256 digest rather than a portable
     cryptographic signature. This gate therefore proves structural integrity,
-    ALLOW semantics, and request correlation; it does not pretend the digest is
-    an HMAC signature. Authentication remains provided by the separate JANUS
-    ingress secret and VULCAN execution-key boundary.
+    ALLOW semantics, request correlation, and capability binding; it does not
+    pretend the digest is an HMAC signature. Authentication remains provided by
+    the separate JANUS ingress secret and VULCAN execution-key boundary.
     """
     try:
         payload = json.loads(receipt)
@@ -101,8 +102,10 @@ def validate_janus_receipt(receipt: str, *, run_id: str, agent_worker_id: str) -
         raise ValueError("janus_receipt run_id mismatch")
     if payload.get("requested_by") != agent_worker_id:
         raise ValueError("janus_receipt requested_by mismatch")
-    if not payload.get("decision_id") or not payload.get("correlation_id") or not payload.get("capability"):
-        raise ValueError("janus_receipt decision_id/correlation_id/capability required")
+    if payload.get("capability") != _JANUS_CAPABILITY:
+        raise ValueError("janus_receipt capability mismatch")
+    if not payload.get("decision_id") or not payload.get("correlation_id"):
+        raise ValueError("janus_receipt decision_id/correlation_id required")
 
     reasons = payload.get("reasons")
     if not isinstance(reasons, list) or not _JANUS_REQUIRED_REASONS.issubset({str(item) for item in reasons}):
@@ -204,7 +207,8 @@ class GitHubExecutor:
             "execution_key_configured": key_ready,
             "configured": token_ready and key_ready,
             "blocked_paths": list(_BLOCKED_PREFIXES),
-            "janus_receipt_gate": "ALLOW_INTEGRITY_AND_CORRELATION_REQUIRED",
+            "janus_receipt_gate": "ALLOW_INTEGRITY_CORRELATION_AND_CAPABILITY_REQUIRED",
+            "janus_required_capability": _JANUS_CAPABILITY,
             "proof_state_on_success": "EXECUTED_NOT_VERIFIED",
         }
 
@@ -326,7 +330,7 @@ class GitHubExecutor:
             "pull_request_number": pr.get("number"),
             "pull_request_url": pr.get("html_url"),
             "merge_performed": False,
-            "janus_receipt_gate": "PASS_INTEGRITY_AND_CORRELATION",
+            "janus_receipt_gate": "PASS_INTEGRITY_CORRELATION_AND_CAPABILITY",
             "verification_required": ["SECA", "DevOS", "HQ-25"],
             "proof_required": "ProofGrid -> Thoth",
         }
