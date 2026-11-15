@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "contract_id": "GA-001-METAFORGE-HANDOFF",
+  "mission_id": "GA-001-EDEN-CONVERGENCE",
+  "canonical_owner": "MetaForge",
+  "implementation_repository": "Atlas-Ascend/VULCAN-Agentic-Engineering-Foundry",
+  "execution_role": "Build, repair, package, and return implementation artifacts for authorized packets.",
+  "input": {
+    "producer": "Atlas-Ascend/workforce-spine",
+    "contract": "authorized-build-packet",
+    "required_fields": [
+      "packet_id",
+      "correlation_id",
+      "objective",
+      "acceptance_criteria",
+      "required_outputs",
+      "authority_ref",
+      "risk_class"
+    ]
+  },
+  "flow": [
+    "Receive JANUS-authorized Workforce Spine packet.",
+    "Generate candidate implementation lineages.",
+    "Evaluate every candidate against the same immutable acceptance suite.",
+    "Classify failures and run bounded repair revisions.",
+    "Rank only candidates that pass every mandatory acceptance case.",
+    "Return candidate lineage, tests, repair history, risk/score result, and SHA-256 receipt."
+  ],
+  "governance": {
+    "executive_authority": "JANUS PRIME",
+    "engineering_governance": "PROMETHEUS AIS",
+    "competition": "Atlas-Ascend/-PROMETHEUS-AIS-Competition",
+    "independent_verification": [
+      "SECA",
+      "DEVOS"
+    ],
+    "evidence": "ProofGrid",
+    "archive": "thoth-archive-engine",
+    "capability_genome_rule": "Only independently verified candidate lineages may be proposed for reusable capability genome compilation.",
+    "prime_rule": "Capture baseline and post-change measurements; do not claim multiplier improvement without evidence."
+  },
+  "invariants": [
+    "VULCAN implements the existing MetaForge construction role; it does not create a new organ or runtime.",
+    "A model preference cannot substitute for mandatory test success.",
+    "Unverified candidates cannot be promoted.",
+    "VULCAN does not hold JANUS executive authorization or SECA finish-truth authority.",
+    "Production deployment, credential changes, destructive repository actions, and arbitrary shell execution remain outside this contract.",
+    "One GA-001 correlation ID must connect input packet, candidate lineage, verification, proof, and archive."
+  ],
+  "production_deployment_authorized": false,
+  "truth_state": "CONTRACT_DEFINED_RUNTIME_INTEGRATION_PENDING"
+}
